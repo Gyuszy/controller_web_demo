@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Játék Kontroller</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: #111;
+      color: white;
+    }
+    #joystick {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: #444;
+      position: relative;
+      touch-action: none;
+      margin-bottom: 30px;
+    }
+    #stick {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #ccc;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+    button {
+      font-size: 20px;
+      padding: 15px 25px;
+      background: #2ecc71;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Kontroller</h1>
+  <div id="joystick">
+    <div id="stick"></div>
+  </div>
+  <button onclick="sendButtonPress('jump')">Ugrás</button>
+
+  <script>
+    const socket = new WebSocket("ws://192.168.0.42:3000"); // Cseréld ki a saját géped IP-jére!
+
+    socket.onopen = () => console.log("Kapcsolódva a szerverhez");
+    socket.onerror = (e) => console.error("Hiba:", e);
+
+    function sendJoystick(x, y) {
+      const data = {
+        type: "joystick",
+        x: parseFloat(x.toFixed(2)),
+        y: parseFloat(y.toFixed(2))
+      };
+      socket.send(JSON.stringify(data));
+    }
+
+    function sendButtonPress(action) {
+      const data = {
+        type: "button",
+        action
+      };
+      socket.send(JSON.stringify(data));
+    }
+
+    const joystick = document.getElementById("joystick");
+    const stick = document.getElementById("stick");
+
+    joystick.addEventListener("touchmove", (e) => {
+      const rect = joystick.getBoundingClientRect();
+      const touch = e.touches[0];
+      const x = touch.clientX - rect.left - rect.width / 2;
+      const y = touch.clientY - rect.top - rect.height / 2;
+      const max = rect.width / 2;
+
+      const dx = Math.max(-max, Math.min(max, x));
+      const dy = Math.max(-max, Math.min(max, y));
+
+      stick.style.transform = `translate(${dx}px, ${dy}px)`;
+      sendJoystick(dx / max, dy / max);
+    });
+
+    joystick.addEventListener("touchend", () => {
+      stick.style.transform = "translate(-50%, -50%)";
+      sendJoystick(0, 0);
+    });
+  </script>
+</body>
+</html>

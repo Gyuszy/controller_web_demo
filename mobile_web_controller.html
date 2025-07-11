@@ -54,7 +54,7 @@
   <button onclick="sendButtonPress('jump')">Ugrás</button>
 
   <script>
-    const socket = new WebSocket("ws://192.168.0.42:3000"); // Cseréld ki a saját géped IP-jére!
+    const socket = new WebSocket("ws://192.168.240.67:3000");
 
     socket.onopen = () => console.log("Kapcsolódva a szerverhez");
     socket.onerror = (e) => console.error("Hiba:", e);
